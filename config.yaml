@@ -1,0 +1,5 @@
+root_data_path : 'data/movie-lens/ml-1m/'
+train_prop : 0.8 
+val_prop : 0.1
+test_prop : 0.1 
+time_col : 'Timestamp'
