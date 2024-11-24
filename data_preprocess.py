@@ -108,7 +108,14 @@ def create_data(config_path : str):
                                                               test_start_time,
                                                               test_end_time)
     
-    return users, movies, train_ratings, val_ratings, test_ratings
+    config['train_start_time'] = train_start_time
+    config['train_end_time'] = train_end_time
+    config['val_start_time'] = val_start_time
+    config['val_end_time'] = val_end_time
+    config['test_start_time'] = test_start_time
+    config['test_end_time'] = test_end_time
+    
+    return users, movies, train_ratings, val_ratings, test_ratings, config
 
 
 
