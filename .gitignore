@@ -1,2 +1,4 @@
 data/*
 gnn-env/*
+.venv/
+venv/  
