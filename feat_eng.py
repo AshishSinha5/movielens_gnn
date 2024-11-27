@@ -9,6 +9,9 @@ from gensim.parsing.preprocessing import remove_stopword_tokens
 
 from data_preprocess import create_data
 
+
+from sklearn.preprocessing import LabelEncoder
+
 w2v_model = KeyedVectors.load_word2vec_format('data/GoogleNews-vectors-negative300_2.bin', binary=True)
 
 def compute_average_embedding(genres, w2v_model):
@@ -34,6 +37,10 @@ def preprocess_title(title):
     return title
 
 def feat_eng(users, movies):
+    user_encoder = LabelEncoder()
+    movie_encoder = LabelEncoder()
+    users['UserID'] = user_encoder.fit_transform(users['UserID'])
+    movies['MovieID'] = movie_encoder.fit_transform(movies['MovieID'])
     users['Gender'] = users['Gender'].map({'M' : 1, 'F' : 0})
     # Regex to extract title and year
     movies[['Title', 'Year']] = movies['Title'].str.extract(r'^(.*?)(?: \((\d{4})\))?$')
@@ -42,7 +49,7 @@ def feat_eng(users, movies):
     movies['Genre_Embedding'] = movies['Genre_List'].apply(lambda x: compute_average_embedding(x, w2v_model))
     movies['Title_List'] = movies['Title'].apply(preprocess_title)
     movies['Title_Embedding'] = movies['Title_List'].apply(lambda x: compute_average_embedding(x, w2v_model))
-    return users, movies
+    return users, movies, user_encoder, movie_encoder
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -50,7 +57,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
     config_path = args.config_path
     users, movies, train_ratings, val_ratings, test_ratings, config = create_data(config_path)
-    users, movies = feat_eng(users, movies)
+    users, movies, user_encoder, movie_encoder = feat_eng(users, movies)
 
     os.makedirs(config['transformed_data_root_path'], exist_ok=True)
     users.to_csv(os.path.join(config['transformed_data_root_path'], 'users.csv'), index=False)
@@ -58,3 +65,5 @@ if __name__ == "__main__":
     train_ratings.to_csv(os.path.join(config['transformed_data_root_path'], 'train_ratings.csv'), index = False)
     val_ratings.to_csv(os.path.join(config['transformed_data_root_path'], 'val_ratings.csv'), index = False)
     test_ratings.to_csv(os.path.join(config['transformed_data_root_path'], 'test_ratings.csv'), index = False)
+    np.save(os.path.join(config['transformed_data_root_path'], 'user_encoder.npy'), user_encoder.classes_)
+    np.save(os.path.join(config['transformed_data_root_path'], 'movie_encoder.npy'), movie_encoder.classes_)
