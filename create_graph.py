@@ -21,14 +21,14 @@ def create_graph(users, movies, train_ratings, user_classes, movie_classes):
     movie_encoder.classes_ = movie_classes
     train_ratings['UserID'] = user_encoder.transform(train_ratings['UserID'])
     train_ratings['MovieID'] = movie_encoder.transform(train_ratings['MovieID'])
-    train_pos_ratings = train_ratings[train_ratings['Rating'] >= 4]
+    # train_pos_ratings = train_ratings[train_ratings['Rating'] >= 4]
     data = HeteroData()
     data['movie'].x = torch.tensor(movies['Genre_Embedding'].apply(lambda x : ast.literal_eval(x)) + movies['Title_Embedding'].apply(lambda x : ast.literal_eval(x)) + movies['Year'].apply(lambda x: [int(x)]))
     data['user'].x = torch.tensor(users[['Gender', 'Age', 'Occupation']].values, dtype=torch.float32)
 
-    edge_index = train_pos_ratings[['UserID', 'MovieID']].values.T.tolist()
-    data['user', 'likes', 'movie'].edge_index = torch.tensor(edge_index)
-    data['movie', 'liked_by', 'user'].edge_index = data[('user', 'likes', 'movie')].edge_index.flip(0)
+    edge_index = train_ratings[['UserID', 'MovieID']].values.T.tolist()
+    data['user', 'rated', 'movie'].edge_index = torch.tensor(edge_index)
+    data['movie', 'rated_by', 'user'].edge_index = data[('user', '', 'movie')].edge_index.flip(0)
 
     return data
 
